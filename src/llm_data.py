@@ -11,6 +11,9 @@ import multiprocessing
 import time
 import random
 
+positive_emotions = ["amusement", "excitement", "joy", "love", "desire", "optimism", "caring", "pride", "admiration", "gratitude", "relief", "approval"]
+negative_emotions = ["fear", "nervousness", "remorse", "embarrassment", "disappointment", "sadness", "grief", "disgust", "anger", "annoyance", "disapproval"]
+neutral_emotions = ["realization", "surprise", "curiosity", "confusion", "neutral"]
 
 def arg_parse():
     parser = argparse.ArgumentParser()
@@ -48,9 +51,21 @@ def clean_response(response):
         classify.append("ambiguous")
     return classify
 
+def clean_emotion_response(response):
+    emotion = []
+    for word in positive_emotions + negative_emotions + neutral_emotions:
+        if word in response:
+            emotion.append(word)
+    return emotion
+
 def generate_classify_template(text, model_name):
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nPlease read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into "
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nPlease read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into"
+    return prompt
+
+def generate_emotion_template(text, model_name, classify):
+    if model_name == "Qwen/Qwen2.5-7B-Instruct":
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nPlease read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify}.<|im_end|>\n<|im_start|>user\nNow, please classify it into more detailed emotions. Below is all the emotion categories for your reference.\n[\"amusement\", \"excitement\", \"joy\", \"love\", \"desire\", \"optimism\", \"caring\", \"pride\", \"admiration\", \"gratitude\", \"relief\", \"approval\", \"fear\", \"nervousness\", \"remorse\", \"embarrassment\", \"disappointment\", \"sadness\", \"grief\", \"disgust\", \"anger\", \"annoyance\", \"disapproval\", \"realization\", \"surprise\", \"curiosity\", \"confusion\", \"neutral\"]\nYou can choose at most two emotions and answer it in the list form.\n\nYour answer format should be:\nI will classify it into [emotion list].<|im_end|>\n<|im_start|>assistant\nI will classify it into"
     return prompt
 
 
@@ -84,13 +99,23 @@ def batch_inference(
             for item in batch_items
         ]
         # Generate responses using llama
-        batch_responses = generate_responses(
+        batch_classify_responses = generate_responses(
             model=model,
             sampling_params=sampling_params,
             prompt=prompts,
         )
+        prompts = [
+            generate_emotion_template(item['text'], model_name, clean_response(classify_response)[0])
+            for classify_response, item in zip(batch_classify_responses, batch_items)
+        ]
+        batch_emotion_responses = generate_responses(
+            model=model,
+            sampling_params=sampling_params,
+            prompt=prompts,
+        )
+
         for idx, data in enumerate(batch_items):
-            response = batch_responses[idx]
+            response = batch_classify_responses[idx]
             if response[0] == " ":
                 response = response[1:]
             new_data = {}
@@ -102,6 +127,11 @@ def batch_inference(
             new_data["actor_model"] = actor_name
             new_data["classify_response"] = "After analyzing the whole sentence, I will classify it into " + response
             new_data["origin_classify"] = clean_response(response)
+            response = batch_emotion_responses[idx]
+            if response[0] == " ":
+                response = response[1:]
+            new_data["emotion_response"] = "I will classify it into " + response
+            new_data["origin_emotion"] = clean_emotion_response(response)
             results_true.append(new_data)
     return results_true
 
