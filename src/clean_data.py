@@ -92,4 +92,30 @@ def oc_emotion():
     with open("data/oc_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
-oc_emotion()
+def dair_ai_emotion():
+    df = pd.read_parquet('data/dair_ai_emotion/unsplit/train-00000-of-00001.parquet')
+    result = []
+    map = {0:"sadness",1:"joy", 2:"love", 3:"anger", 4:"fear", 5:"surprise"}
+    for idx, row in df.iterrows():
+        emotion = map[row['label']]
+        classify = []
+        if emotion in emotion_categories['positive']:
+            classify.append("positive")
+        elif emotion in emotion_categories['negative']:
+            classify.append("negative")
+        elif emotion in emotion_categories['ambiguous']:
+            classify.append("ambiguous")
+        item = {
+            'idx': idx,
+            'dataset': 'dair_ai_emotion',
+            'text': row['text'],
+            'classify': list(classify),
+            'emotion': [emotion]
+        }
+        result.append(item)
+    with open("data/dair_ai_emotion/clean_data.json", "w") as f:
+        json.dump(result, f, indent=2)
+    
+
+# oc_emotion()
+dair_ai_emotion()

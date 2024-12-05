@@ -12,3 +12,8 @@ wget -P data/go_emotion/ https://storage.googleapis.com/gresearch/goemotions/dat
 ```
 https://aistudio.baidu.com/datasetdetail/100731
 ```
+
+### dair_ai_emotion
+```
+https://huggingface.co/datasets/dair-ai/emotion
+```
