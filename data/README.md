@@ -9,6 +9,7 @@ wget -P data/go_emotion/ https://storage.googleapis.com/gresearch/goemotions/dat
 ```
 
 ### oc_emotion
+
 ```
 https://aistudio.baidu.com/datasetdetail/100731
 ```
@@ -16,4 +17,18 @@ https://aistudio.baidu.com/datasetdetail/100731
 ### dair_ai_emotion
 ```
 https://huggingface.co/datasets/dair-ai/emotion
+```
+
+### nlpcc_2014
+
+```
+http://tcci.ccf.org.cn/conference/2014/pages/page04_sam.html
+http://tcci.ccf.org.cn/conference/2014/pages/page04_ans.html
+```
+
+### nlpcc_2013
+
+```
+http://tcci.ccf.org.cn/conference/2013/pages/page04_sam.html
+http://tcci.ccf.org.cn/conference/2013/pages/page04_ans.html
 ```
