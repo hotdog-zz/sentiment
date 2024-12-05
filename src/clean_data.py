@@ -298,7 +298,31 @@ def dair_ai_emotion():
         result.append(item)
     with open("data/dair_ai_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
-    
+
+def smp_2020():
+    df1 = pd.read_json('data/SMP/train/usual_train.txt')
+    df2 = pd.read_json('data/SMP/train/virus_train.txt')
+    df3 = pd.read_json('data/SMP/eval（刷榜数据集）/usual_eval_labeled.txt')
+    df4 = pd.read_json('data/SMP/eval（刷榜数据集）/virus_eval_labeled.txt')
+    df5 = pd.read_json('data/SMP/test（最终评测集）/真实评测集/usual_test_labeled.txt')
+    df6 = pd.read_json('data/SMP/test（最终评测集）/真实评测集/virus_test_labeled.txt')
+    df = pd.concat([df1, df2, df3, df4, df5, df6], ignore_index=True)
+    result = []
+    map = {"sad":"sadness","happy":"joy", "angry":"anger", "surprise":"surprise", "fear":"fear", "neutral":"neutral"}
+    for idx, row in df.iterrows():
+        emotion = map[row['label']]
+        _, classify = generate_classify([emotion])
+        item = {
+            'idx': idx,
+            'dataset': 'smp_2020',
+            'text': row['content'],
+            'classify': classify,
+            'emotion': [emotion]
+        }
+        result.append(item)
+    with open("data/SMP/clean_data.json", "w") as f:
+        json.dump(result, f, indent=2)
+
 def yf_dianping():
     df = pd.read_csv('data/yf_dianping/ratings.csv')
     result = []

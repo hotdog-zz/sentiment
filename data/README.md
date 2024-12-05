@@ -45,3 +45,8 @@ https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/yf_dianping/
 ```
 https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/online_shopping_10_cats/intro.ipynb
 ```
+
+### SMP2020
+```
+https://smp2020ewect.github.io/
+```
