@@ -15,6 +15,7 @@ https://aistudio.baidu.com/datasetdetail/100731
 ```
 
 ### dair_ai_emotion
+
 ```
 https://huggingface.co/datasets/dair-ai/emotion
 ```
@@ -31,4 +32,16 @@ http://tcci.ccf.org.cn/conference/2014/pages/page04_ans.html
 ```
 http://tcci.ccf.org.cn/conference/2013/pages/page04_sam.html
 http://tcci.ccf.org.cn/conference/2013/pages/page04_ans.html
+```
+
+### yf_dianping
+
+```
+https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/yf_dianping/intro.ipynb
+```
+
+### online_shopping_10
+
+```
+https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/online_shopping_10_cats/intro.ipynb
 ```

@@ -1,3 +1,4 @@
+from pydoc import classify_class_attrs
 import xml.etree.ElementTree as ET
 import pandas as pd
 import pdb
@@ -58,7 +59,7 @@ def go_emotion():
         json.dump(result, f, indent=2)
 
 def oc_emotion():
-    df = pd.read_csv('data/oc_emotion/OCEMOTION.csv', sep='\t',header=None)
+    df = pd.read_csv('data/oc_emotion/OCEMOTION.csv', sep='\t', header=None)
     result = []
     value_map = {
         "sadness": "sadness",
@@ -298,5 +299,64 @@ def dair_ai_emotion():
     with open("data/dair_ai_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
     
+def yf_dianping():
+    df = pd.read_csv('data/yf_dianping/ratings.csv')
+    result = []
 
-dair_ai_emotion()
+    # 遍历数据的每一行
+    idx = 0
+    for row_num, row in df.iterrows():
+        # 提取text列
+        text = row['comment']
+        rating = row['rating']
+        if pd.isna(text):
+            continue
+        if pd.isna(rating):
+            if not pd.isna(row['rating_env']) and not pd.isna(row['rating_flavor']) and not pd.isna(row['rating_service']):
+                rating = (row['rating_env'] + row['rating_flavor'] + row['rating_service']) / 3
+            else:
+                continue
+        classify_list = []
+        if rating >= 4.0:
+            classify_list = ['positive']
+        elif rating <= 2.0:
+            classify_list = ['negative']
+        else:
+            classify_list = ['ambiguous']
+        emotions = []
+
+        # 构建字典并添加到结果列表
+        result.append({
+            'idx': idx,
+            'dataset': 'yf_dianping',
+            'text': text,
+            'classify': classify_list,
+            'emotion': emotions
+        })
+        idx += 1
+    with open("data/yf_dianping/clean_data.json", "w") as f:
+        json.dump(result, f, indent=2)
+
+def online_shopping_10():
+    df = pd.read_csv('data/online_shopping_10/online_shopping_10_cats.csv')
+    result = []
+    # 遍历数据的每一行
+    for idx, row in df.iterrows():
+        # 提取text列
+        text = row['review']    
+        label = row['label']
+        if label == 1:
+            classify_list = ['positive']
+        if label == 0:
+            classify_list = ['negative']
+        emotions = []
+        # 构建字典并添加到结果列表
+        result.append({
+            'idx': idx,
+            'dataset': 'online_shopping_10',
+            'text': text,
+            'classify': classify_list,
+            'emotion': emotions
+        })
+    with open("data/online_shopping_10/clean_data.json", "w") as f:
+        json.dump(result, f, indent=2)
