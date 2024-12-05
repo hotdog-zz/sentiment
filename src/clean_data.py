@@ -286,21 +286,17 @@ def dair_ai_emotion():
     map = {0:"sadness",1:"joy", 2:"love", 3:"anger", 4:"fear", 5:"surprise"}
     for idx, row in df.iterrows():
         emotion = map[row['label']]
-        classify = []
-        if emotion in emotion_categories['positive']:
-            classify.append("positive")
-        elif emotion in emotion_categories['negative']:
-            classify.append("negative")
-        elif emotion in emotion_categories['ambiguous']:
-            classify.append("ambiguous")
+        _, classify = generate_classify([emotion])
         item = {
             'idx': idx,
             'dataset': 'dair_ai_emotion',
             'text': row['text'],
-            'classify': list(classify),
+            'classify': classify,
             'emotion': [emotion]
         }
         result.append(item)
     with open("data/dair_ai_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
     
+
+dair_ai_emotion()
