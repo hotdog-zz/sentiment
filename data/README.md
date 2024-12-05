@@ -32,3 +32,8 @@ http://tcci.ccf.org.cn/conference/2014/pages/page04_ans.html
 http://tcci.ccf.org.cn/conference/2013/pages/page04_sam.html
 http://tcci.ccf.org.cn/conference/2013/pages/page04_ans.html
 ```
+
+### SMP2020
+```
+https://smp2020ewect.github.io/
+```
