@@ -3,6 +3,7 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import pdb
 import json
+import re
 
 
 def generate_classify(emotions):
@@ -26,6 +27,7 @@ def generate_classify(emotions):
     # 将分类结果转换为列表
     classify_list = list(classify)
     return emotions, classify_list
+
 
 def go_emotion():
     # 读取CSV文件
@@ -58,6 +60,7 @@ def go_emotion():
     with open("data/go_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
+
 def oc_emotion():
     df = pd.read_csv('data/oc_emotion/OCEMOTION.csv', sep='\t', header=None)
     result = []
@@ -88,6 +91,7 @@ def oc_emotion():
         })
     with open("data/oc_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
+
 
 def nlpcc_2013():
     # 解析XML文件
@@ -149,9 +153,8 @@ def nlpcc_2013():
     with open("data/nlpcc_2013/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
+
 def nlpcc_2014():
-    # 解析XML文件
-    tree = ET.parse('data/nlpcc_2014/NLPCC2014微博情绪分析样例数据.xml')  # 替换为你的XML文件路径
     value_map = {
         "sadness": "sadness",
         "happiness": "joy",
@@ -164,122 +167,108 @@ def nlpcc_2014():
 
     result = []
     idx = 0
+    def process_tree(idx, root, result):
+        for para in root:
+            full_text= ""
+            for sentence in para:
+                text = sentence.text
+                full_text += text + " "
+                attrib = sentence.attrib
+                emotions = []
+                if attrib['opinionated'] == 'Y':
+                    emotions = [attrib['emotion-1-type'], attrib['emotion-2-type']]
+                    emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
+                emotions, classify_list = generate_classify(emotions)
 
-    root = tree.getroot()  # 获取根元素
-    for para in root:
-        full_text= ""
-        for sentence in para:
-            text = sentence.text
-            full_text += text + " "
-            attrib = sentence.attrib
-            emotions = []
-            if attrib['opinionated'] == 'Y':
-                emotions = [attrib['emotion-1-type'], attrib['emotion-2-type']]
-                emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
+                # 构建字典并添加到结果列表
+                result.append({
+                    'idx': idx,
+                    'dataset': 'nlpcc_2014',
+                    'text': text,
+                    'classify': classify_list,
+                    'emotion': emotions
+                })
+                idx += 1
+            attrib = para.attrib
+            emotions = [attrib['emotion-type1'], attrib['emotion-type2']]
+            emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
             emotions, classify_list = generate_classify(emotions)
 
             # 构建字典并添加到结果列表
             result.append({
                 'idx': idx,
-                'dataset': 'nlpcc_2013',
-                'text': text,
+                'dataset': 'nlpcc_2014',
+                'text': full_text,
                 'classify': classify_list,
                 'emotion': emotions
             })
             idx += 1
-        attrib = para.attrib
-        emotions = [attrib['emotion-type1'], attrib['emotion-type2']]
-        emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
-        emotions, classify_list = generate_classify(emotions)
+        return idx, result
 
-        # 构建字典并添加到结果列表
-        result.append({
-            'idx': idx,
-            'dataset': 'nlpcc_2014',
-            'text': full_text,
-            'classify': classify_list,
-            'emotion': emotions
-        })
-        idx += 1
-    
+    # 解析XML文件
+    tree = ET.parse('data/nlpcc_2014/NLPCC2014微博情绪分析样例数据.xml')  # 替换为你的XML文件路径
+    root = tree.getroot()  # 获取根元素
+    idx, result = process_tree(idx, root, result)
+   
     tree = ET.parse('data/nlpcc_2014/EmotionClassficationTest.xml')  # 替换为你的XML文件路径
     root = tree.getroot()  # 获取根元素
-    for para in root:
-        full_text= ""
-        for sentence in para:
-            text = sentence.text
-            full_text += text + " "
-            attrib = sentence.attrib
-            emotions = []
-            if attrib['opinionated'] == 'Y':
-                emotions = [attrib['emotion-1-type'], attrib['emotion-2-type']]
-                emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
-            emotions, classify_list = generate_classify(emotions)
-
-            # 构建字典并添加到结果列表
-            result.append({
-                'idx': idx,
-                'dataset': 'nlpcc_2013',
-                'text': text,
-                'classify': classify_list,
-                'emotion': emotions
-            })
-            idx += 1
-        attrib = para.attrib
-        emotions = [attrib['emotion-type1'], attrib['emotion-type2']]
-        emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
-        emotions, classify_list = generate_classify(emotions)
-
-        # 构建字典并添加到结果列表
-        result.append({
-            'idx': idx,
-            'dataset': 'nlpcc_2014',
-            'text': full_text,
-            'classify': classify_list,
-            'emotion': emotions
-        })
-        idx += 1
+    idx, result = process_tree(idx, root, result)
     
     tree = ET.parse('data/nlpcc_2014/ExpressionTest.xml')  # 替换为你的XML文件路径
     root = tree.getroot()  # 获取根元素
-    for para in root:
-        full_text= ""
-        for sentence in para:
-            text = sentence.text
-            full_text += text + " "
-            attrib = sentence.attrib
-            emotions = []
-            if attrib['opinionated'] == 'Y':
-                emotions = [attrib['emotion-1-type'], attrib['emotion-2-type']]
-                emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
-            emotions, classify_list = generate_classify(emotions)
-
-            # 构建字典并添加到结果列表
-            result.append({
-                'idx': idx,
-                'dataset': 'nlpcc_2013',
-                'text': text,
-                'classify': classify_list,
-                'emotion': emotions
-            })
-            idx += 1
-        attrib = para.attrib
-        emotions = [attrib['emotion-type1'], attrib['emotion-type2']]
-        emotions = [value_map.get(emotion, emotion) for emotion in emotions if emotion in value_map]
-        emotions, classify_list = generate_classify(emotions)
-
-        # 构建字典并添加到结果列表
-        result.append({
-            'idx': idx,
-            'dataset': 'nlpcc_2014',
-            'text': full_text,
-            'classify': classify_list,
-            'emotion': emotions
-        })
-        idx += 1
+    idx, result = process_tree(idx, root, result)
     
     with open("data/nlpcc_2014/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
+
+
+def nlpcc_2018():
+    result = []
+    tag_patterns = {
+        'joy': re.compile(r'<Happiness>(.*?)</Happiness>', re.S),
+        'Sadness': re.compile(r'<Sadness>(.*?)</Sadness>', re.S),
+        'Anger': re.compile(r'<Anger>(.*?)</Anger>', re.S),
+        'Fear': re.compile(r'<Fear>(.*?)</Fear>', re.S),
+        'Surprise': re.compile(r'<Surprise>(.*?)</Surprise>', re.S),
+        'Content': re.compile(r'<Content>(.*?)</Content>', re.S)
+    }
+    file_list = ["data/nlpcc_2018/train.txt", "data/nlpcc_2018/dev.txt"]
+    idx = 0
+    for file in file_list:
+        with open(file, 'r') as f:
+            lines = f.readlines()
+        
+        # 用来存储当前Tweet的内容
+        tweet = {}
+        full_text = ""
+        for line in lines:
+            # 去除行首尾的空白字符
+            line = line.strip()
+            full_text += line
+            if line.startswith('</Tweet>'):
+                emotions = []
+                text = ""
+                for emotion, pattern in tag_patterns.items():
+                    match = pattern.search(full_text)
+                    extract_text = match.group(1).strip()
+                    if emotion == "Content":
+                        text = extract_text.replace(" ", "")
+                    else:
+                        if extract_text == "T":
+                            emotions.append(emotion.lower())
+                emotions, classify_list = generate_classify(emotions)
+                result.append({
+                    'idx': idx,
+                    'dataset': 'nlpcc_2018',
+                    'text': text,
+                    'classify': classify_list,
+                    'emotion': emotions
+                })
+                idx += 1
+                full_text = ""
+    with open("data/nlpcc_2018/clean_data.json", "w") as f:
+        json.dump(result, f, indent=2)
+nlpcc_2018()
 
 def dair_ai_emotion():
     df = pd.read_parquet('data/dair_ai_emotion/unsplit/train-00000-of-00001.parquet')
@@ -298,6 +287,7 @@ def dair_ai_emotion():
         result.append(item)
     with open("data/dair_ai_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
+
 
 def smp_2020():
     df1 = pd.read_json('data/SMP/train/usual_train.txt')
@@ -322,6 +312,7 @@ def smp_2020():
         result.append(item)
     with open("data/SMP/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
+
 
 def yf_dianping():
     df = pd.read_csv('data/yf_dianping/ratings.csv')
@@ -360,6 +351,7 @@ def yf_dianping():
         idx += 1
     with open("data/yf_dianping/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
+
 
 def online_shopping_10():
     df = pd.read_csv('data/online_shopping_10/online_shopping_10_cats.csv')
