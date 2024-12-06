@@ -20,6 +20,12 @@ https://aistudio.baidu.com/datasetdetail/100731
 https://huggingface.co/datasets/dair-ai/emotion
 ```
 
+### nlpcc_2018
+
+```
+http://tcci.ccf.org.cn/conference/2018/taskdata.php
+```
+
 ### nlpcc_2014
 
 ```
