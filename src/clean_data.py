@@ -268,7 +268,7 @@ def nlpcc_2018():
                 full_text = ""
     with open("data/nlpcc_2018/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
-nlpcc_2018()
+
 
 def dair_ai_emotion():
     df = pd.read_parquet('data/dair_ai_emotion/unsplit/train-00000-of-00001.parquet')
