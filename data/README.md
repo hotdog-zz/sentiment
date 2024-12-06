@@ -46,7 +46,12 @@ https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/yf_dianping/
 https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/online_shopping_10_cats/intro.ipynb
 ```
 
-### SMP2020
+### smp_2020
 ```
 https://smp2020ewect.github.io/
+```
+
+### tcci_2018
+```
+https://www.biendata.xyz/ccf_tcci2018/datasets/emotion/
 ```

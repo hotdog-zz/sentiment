@@ -300,12 +300,12 @@ def dair_ai_emotion():
         json.dump(result, f, indent=2)
 
 def smp_2020():
-    df1 = pd.read_json('data/SMP/train/usual_train.txt')
-    df2 = pd.read_json('data/SMP/train/virus_train.txt')
-    df3 = pd.read_json('data/SMP/eval（刷榜数据集）/usual_eval_labeled.txt')
-    df4 = pd.read_json('data/SMP/eval（刷榜数据集）/virus_eval_labeled.txt')
-    df5 = pd.read_json('data/SMP/test（最终评测集）/真实评测集/usual_test_labeled.txt')
-    df6 = pd.read_json('data/SMP/test（最终评测集）/真实评测集/virus_test_labeled.txt')
+    df1 = pd.read_json('data/smp_2020/train/usual_train.txt')
+    df2 = pd.read_json('data/smp_2020/train/virus_train.txt')
+    df3 = pd.read_json('data/smp_2020/eval（刷榜数据集）/usual_eval_labeled.txt')
+    df4 = pd.read_json('data/smp_2020/eval（刷榜数据集）/virus_eval_labeled.txt')
+    df5 = pd.read_json('data/smp_2020/test（最终评测集）/真实评测集/usual_test_labeled.txt')
+    df6 = pd.read_json('data/smp_2020/test（最终评测集）/真实评测集/virus_test_labeled.txt')
     df = pd.concat([df1, df2, df3, df4, df5, df6], ignore_index=True)
     result = []
     map = {"sad":"sadness","happy":"joy", "angry":"anger", "surprise":"surprise", "fear":"fear", "neutral":"neutral"}
@@ -384,3 +384,24 @@ def online_shopping_10():
         })
     with open("data/online_shopping_10/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
+
+
+def tcci_2018():
+    map = {0:"neutral",1:"love", 2:"sadness", 3:"disgust", 4:"anger", 5:"joy"}
+    with open('data/tcci_2018/train.json', 'r') as f:
+        data = json.load(f)
+    result = []
+    for idx, item in enumerate(data):
+        text = item[0].replace(' ', '')
+        emotion = map[item[1]]
+        _, classify = generate_classify([emotion])
+        result.append({
+            'idx': idx,
+            'dataset': 'tcci_2018',
+            'text': text,
+            'classify': classify,
+            'emotion': [emotion]
+        })
+    with open("data/tcci_2018/clean_data.json", "w") as f:
+        json.dump(result, f, indent=2)
+
