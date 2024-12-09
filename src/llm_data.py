@@ -41,7 +41,8 @@ def arg_parse():
 
 def clean_response(response):
     classify = []
-    temp = response.find("\n")
+    response = response.lower()
+    temp = response.find("explanation")
     response = response[0:temp]
     if "negative" in response:
         classify.append("negative")
@@ -49,25 +50,45 @@ def clean_response(response):
         classify.append("positive")
     if "ambiguous" in response:
         classify.append("ambiguous")
+    if len(classify) == 0:
+        classify.append("")
     return classify
 
 def clean_emotion_response(response):
+    response = response.lower()
+    temp = response.find("explanation")
+    response = response[0:temp]
     emotion = []
     for word in positive_emotions + negative_emotions + neutral_emotions:
         if word in response:
-            emotion.append(word)
+            if word == "approval":
+                temp = word.find("approval")
+                if word[temp-1] == "s":
+                    continue
+            else:
+                emotion.append(word)
     return emotion
 
 def generate_classify_template(text, model_name):
+    user_prompt = f"Please read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nPlease read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into"
+    elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
+        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into"
+    elif model_name == "THUDM/glm-4-9b-chat":
+        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt}<|assistant|>\nAfter analyzing the whole sentence, I will classify it into"
     return prompt
 
 def generate_emotion_template(text, model_name, classify):
+    user_prompt1 = f"Please read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+    user_prompt2 = f"Now, please classify it into more detailed emotions. Below is all the emotion categories for your choice.\n[\"amusement\", \"excitement\", \"joy\", \"love\", \"desire\", \"optimism\", \"caring\", \"pride\", \"admiration\", \"gratitude\", \"relief\", \"approval\", \"fear\", \"nervousness\", \"remorse\", \"embarrassment\", \"disappointment\", \"sadness\", \"grief\", \"disgust\", \"anger\", \"annoyance\", \"disapproval\", \"realization\", \"surprise\", \"curiosity\", \"confusion\", \"neutral\"]\nYou can choose at most three emotions and answer it in the list form.\n\nYour answer format should be:\nI will classify it into [emotion list]."
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\nPlease read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify}.<|im_end|>\n<|im_start|>user\nNow, please classify it into more detailed emotions. Below is all the emotion categories for your reference.\n[\"amusement\", \"excitement\", \"joy\", \"love\", \"desire\", \"optimism\", \"caring\", \"pride\", \"admiration\", \"gratitude\", \"relief\", \"approval\", \"fear\", \"nervousness\", \"remorse\", \"embarrassment\", \"disappointment\", \"sadness\", \"grief\", \"disgust\", \"anger\", \"annoyance\", \"disapproval\", \"realization\", \"surprise\", \"curiosity\", \"confusion\", \"neutral\"]\nYou can choose at most two emotions and answer it in the list form.\n\nYour answer format should be:\nI will classify it into [emotion list].<|im_end|>\n<|im_start|>assistant\nI will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify}.<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
+    elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
+        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt1}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into {classify}.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt2}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nI will classify it into"
+    elif model_name == "THUDM/glm-4-9b-chat":
+        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt1}<|assistant|>\nAfter analyzing the whole sentence, I will classify it into {classify}.<|user|>\n{user_prompt2}<|assistant|>\nI will classify it into"
     return prompt
-
 
 def generate_responses(model, sampling_params, prompt):
     outputs = model.generate(prompt, sampling_params)
@@ -84,7 +105,7 @@ def batch_inference(
 ):
     # device_id = device_id % 8
     os.environ["CUDA_VISIBLE_DEVICES"] = str(device_id)
-    model = LLM(model=actor_name, tensor_parallel_size=1, gpu_memory_utilization=0.85, max_model_len=2048)
+    model = LLM(model=actor_name, tensor_parallel_size=1, gpu_memory_utilization=0.9, max_model_len=2048, trust_remote_code=True)
     total_batches = (len(inference_dataset) + batch_size - 1) // batch_size
     results_true = []
     
@@ -144,7 +165,7 @@ def inference_pipeline(
     sample_num, 
     results_path,
 ):
-    gpu_id = [1, 4, 5, 6]
+    gpu_id = [1, 4, 5, 7]
     total_gpu = len(gpu_id)
     sampling_params = SamplingParams(max_tokens=512, temperature=temperature)
     # random.shuffle(ds)
@@ -160,7 +181,7 @@ def inference_pipeline(
 
     with multiprocessing.Pool(processes=total_gpu) as pool:
         results = [
-            pool.apply_async(batch_inference, args=(inference_dataset[device_id], gpu_id[device_id], sampling_params, 256, actor_name, model_name))
+            pool.apply_async(batch_inference, args=(inference_dataset[device_id], gpu_id[device_id], sampling_params, 128, actor_name, model_name))
             for device_id in range(total_gpu)
         ]
         for r in results:
@@ -181,5 +202,6 @@ if __name__ == "__main__":
     for ds_name in dataset_name:
         with open(f"data/{ds_name}/clean_data.json", "r") as f:
             ds = json.load(f)
-        results_path = f"llm_data/{ds_name}.json"
+        temp_name = actor_name[actor_name.rfind("/")+1:]
+        results_path = f"llm_data/{temp_name}-{ds_name}.json"
         inference_pipeline(actor_name, model_name, ds, temperature, sample_num, results_path)
