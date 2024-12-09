@@ -9,7 +9,7 @@ import json
 
 header = {
     'user-agent': '',
-    'cookie': 'll="',
+    'cookie': '',
     # 'origin':'https://www.douban.com',
     # 'Referer':'https://www.douban.com',
 }
