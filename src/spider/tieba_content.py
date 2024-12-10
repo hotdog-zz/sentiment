@@ -29,6 +29,8 @@ def get_content(url, comment_df):
         soup = BeautifulSoup(response.text, 'lxml')
 
         page_num_raw = soup.find('div', class_='p_thread thread_theme_5')
+        if page_num_raw is None and "404页面" in str(soup):
+            return comment_df, 0, 0, "404页面"
         page_num = page_num_raw.find('li', class_='l_reply_num').find_all('span', class_='red')[-1].get_text(strip=True)
         page_num = int(page_num)
 
@@ -86,7 +88,7 @@ def get_content(url, comment_df):
             comment_row_df = pd.DataFrame([comment_row])
             comment_df = pd.concat([comment_df, comment_row_df], ignore_index=True)
 
-        comment_df.to_csv('tieba_reply.csv', index=False, encoding='utf-8-sig')
+        comment_df.to_csv('tiebareverse_reply.csv', index=False, encoding='utf-8-sig')
         try:
             # 尝试访问变量
             forum_id
@@ -134,7 +136,7 @@ def get_content(url, comment_df):
                         'my_timestamp': timestamp}
                     comment_row_df = pd.DataFrame([comment_row])
                     comment_df = pd.concat([comment_df, comment_row_df], ignore_index=True)
-            comment_df.to_csv('tieba_reply.csv', index=False, encoding='utf-8-sig')
+            comment_df.to_csv('tiebareverse_reply.csv', index=False, encoding='utf-8-sig')
         return comment_df
     
     pn = 1
@@ -143,6 +145,8 @@ def get_content(url, comment_df):
         tid = url[url.rfind("/")+1:]
         if pn == 1:
             comment_df, forum_id, page_num, return_row = get_page_content(comment_df, url_page)
+            if return_row == "Wrong":
+                return comment_df, "404页面"
         else:
             comment_df, forum_id, page_num, _ = get_page_content(comment_df, url_page)
         sleep(15)
@@ -156,8 +160,6 @@ def get_content(url, comment_df):
                         "see_lz": str(0)}
             comment_df = get_all_content(comment_df, url_page, post_data)
             sleep(15)
-        if "9055190593" in url and pn == 1:
-            pn = 143
         pn += 1
         if pn > page_num:
             break
