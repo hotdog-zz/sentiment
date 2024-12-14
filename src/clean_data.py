@@ -445,8 +445,3 @@ def tcci_2018():
     result = process_data(result)
     with open("data/tcci_2018/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
-go_emotion()
-nlpcc_2013()
-nlpcc_2014()
-nlpcc_2018()
-oc_emotion()
