@@ -103,7 +103,6 @@ def go_emotion():
 
 
 def oc_emotion():
-    df = pd.read_csv('data/oc_emotion/OCEMOTION.csv', sep='\t', header=None)
     result = []
     value_map = {
         "sadness": "sadness",
@@ -115,21 +114,26 @@ def oc_emotion():
         "fear": "fear"
     }
     # 遍历数据的每一行
-    for idx, row in df.iterrows():
-        # 提取text列
-        text = row[1]
-        row[2] = value_map.get(row[2], row[2])        
-        emotions = [row[2]]
-        emotions, classify_list = generate_classify(emotions)
+    idx = 0
+    with open('data/oc_emotion/OCEMOTION.csv', 'r', encoding='utf-8') as f:
+        for line in f:
+            line = line.strip()
+            row = line.split('\t')
+            # 提取text列
+            text = row[1]
+            row[2] = value_map.get(row[2], row[2])        
+            emotions = [row[2]]
+            emotions, classify_list = generate_classify(emotions)
 
-        # 构建字典并添加到结果列表
-        result.append({
-            'idx': idx,
-            'dataset': 'oc_emotion',
-            'text': text,
-            'classify': classify_list,
-            'emotion': emotions
-        })
+            # 构建字典并添加到结果列表
+            result.append({
+                'idx': idx,
+                'dataset': 'oc_emotion',
+                'text': text,
+                'classify': classify_list,
+                'emotion': emotions
+            })
+            idx += 1
     result = process_data(result)
     with open("data/oc_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
