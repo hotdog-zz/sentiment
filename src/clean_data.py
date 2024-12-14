@@ -30,6 +30,7 @@ def generate_classify(emotions):
     return emotions, classify_list
 
 def process_data(data):
+    # 创建一个字典，key为text，value为对应的classify和emotion列表以及dataset
     grouped_data = {}
 
     for item in data:
@@ -48,10 +49,13 @@ def process_data(data):
     new_data = []
 
     for text, values in grouped_data.items():
+        # 对classify进行majority voting
         classify_counter = Counter(values['classify'])
         majority_classify = classify_counter.most_common(1)[0][0]
 
-        unique_emotions = list(set(values['emotion']))
+        # 对emotion进行频率排序
+        emotion_counter = Counter(values['emotion'])
+        unique_emotions = [emotion for emotion, count in emotion_counter.most_common()]
 
         new_data.append({
             'idx': values['idx'],
@@ -441,4 +445,8 @@ def tcci_2018():
     result = process_data(result)
     with open("data/tcci_2018/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
-
+go_emotion()
+nlpcc_2013()
+nlpcc_2014()
+nlpcc_2018()
+oc_emotion()
