@@ -4,6 +4,7 @@ import pandas as pd
 import pdb
 import json
 import re
+from collections import Counter
 
 
 def generate_classify(emotions):
@@ -28,6 +29,41 @@ def generate_classify(emotions):
     classify_list = list(classify)
     return emotions, classify_list
 
+def process_data(data):
+    grouped_data = {}
+
+    for item in data:
+        text = item['text']
+        if text not in grouped_data:
+            grouped_data[text] = {
+                'classify': [],
+                'emotion': [],
+                'idx': item['idx'],
+                'dataset': item['dataset']
+            }
+
+        grouped_data[text]['classify'].extend(item['classify'])
+        grouped_data[text]['emotion'].extend(item['emotion'])
+
+    new_data = []
+
+    for text, values in grouped_data.items():
+        classify_counter = Counter(values['classify'])
+        majority_classify = classify_counter.most_common(1)[0][0]
+
+        unique_emotions = list(set(values['emotion']))
+
+        new_data.append({
+            'idx': values['idx'],
+            'dataset': values['dataset'],
+            'text': text,
+            'classify': [majority_classify],
+            'emotion': unique_emotions
+        })
+        
+    for i, item in enumerate(new_data):
+        item['idx'] = i
+    return new_data
 
 def go_emotion():
     # 读取CSV文件
@@ -57,6 +93,7 @@ def go_emotion():
             'classify': classify_list,
             'emotion': emotions
         })
+    result = process_data(result)
     with open("data/go_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -89,13 +126,14 @@ def oc_emotion():
             'classify': classify_list,
             'emotion': emotions
         })
+    result = process_data(result)
     with open("data/oc_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
 
 def nlpcc_2013():
     # 解析XML文件
-    tree = ET.parse('data/nlpcc_2013/微博情绪标注语料.xml')  # 替换为你的XML文件路径
+    tree = ET.parse('data/nlpcc_2013/微博情绪标注语料.xml')
     value_map = {
         '愤怒': 'anger',
         '厌恶': 'disgust',
@@ -129,7 +167,7 @@ def nlpcc_2013():
                 'emotion': emotions
             })
             idx += 1
-    tree = ET.parse('data/nlpcc_2013/微博情绪样例数据V5-13.xml')  # 替换为你的XML文件路径
+    tree = ET.parse('data/nlpcc_2013/微博情绪样例数据V5-13.xml')
     root = tree.getroot()  # 获取根元素
     for para in root:
         for sentence in para:
@@ -150,6 +188,7 @@ def nlpcc_2013():
                 'emotion': emotions
             })
             idx += 1
+    result = process_data(result)
     with open("data/nlpcc_2013/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -206,18 +245,18 @@ def nlpcc_2014():
         return idx, result
 
     # 解析XML文件
-    tree = ET.parse('data/nlpcc_2014/NLPCC2014微博情绪分析样例数据.xml')  # 替换为你的XML文件路径
+    tree = ET.parse('data/nlpcc_2014/NLPCC2014微博情绪分析样例数据.xml')
     root = tree.getroot()  # 获取根元素
     idx, result = process_tree(idx, root, result)
    
-    tree = ET.parse('data/nlpcc_2014/EmotionClassficationTest.xml')  # 替换为你的XML文件路径
+    tree = ET.parse('data/nlpcc_2014/EmotionClassficationTest.xml')
     root = tree.getroot()  # 获取根元素
     idx, result = process_tree(idx, root, result)
     
-    tree = ET.parse('data/nlpcc_2014/ExpressionTest.xml')  # 替换为你的XML文件路径
+    tree = ET.parse('data/nlpcc_2014/ExpressionTest.xml')
     root = tree.getroot()  # 获取根元素
     idx, result = process_tree(idx, root, result)
-    
+    result = process_data(result)
     with open("data/nlpcc_2014/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -266,6 +305,7 @@ def nlpcc_2018():
                 })
                 idx += 1
                 full_text = ""
+    result = process_data(result)
     with open("data/nlpcc_2018/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -285,6 +325,7 @@ def dair_ai_emotion():
             'emotion': [emotion]
         }
         result.append(item)
+    result = process_data(result)
     with open("data/dair_ai_emotion/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -310,6 +351,7 @@ def smp_2020():
             'emotion': [emotion]
         }
         result.append(item)
+    result = process_data(result)
     with open("data/SMP/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -349,6 +391,7 @@ def yf_dianping():
             'emotion': emotions
         })
         idx += 1
+    result = process_data(result)
     with open("data/yf_dianping/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -374,6 +417,7 @@ def online_shopping_10():
             'classify': classify_list,
             'emotion': emotions
         })
+    result = process_data(result)
     with open("data/online_shopping_10/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
@@ -394,6 +438,7 @@ def tcci_2018():
             'classify': classify,
             'emotion': [emotion]
         })
+    result = process_data(result)
     with open("data/tcci_2018/clean_data.json", "w") as f:
         json.dump(result, f, indent=2)
 
