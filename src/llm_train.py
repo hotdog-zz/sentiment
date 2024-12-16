@@ -88,11 +88,13 @@ def data_enhancement(actor_name, dataset_name):
             
             flag = False
             if classify[0] == "ambiguous" and emotion[0] == "neutral":
-                total_emotion = [item[0] for item in Counter(total_emotion).most_common(2)]
+                # 原始数据无标签
+                total_emotion = [item[0] for item in Counter(total_emotion).most_common(2)] # majority voting
                 total_classify = [total_classify[0]]
                 total_classify_response = [total_classify_response[0]]
                 flag = True
             elif emotion[0] in total_emotion and classify[0] in total_classify:
+                # 有一个标签被预测到
                 total_emotion = [item[0] for item in Counter(total_emotion).most_common(2)]
                 for class_item, response_item in zip(total_classify, total_classify_response):
                     if class_item == classify[0]:
