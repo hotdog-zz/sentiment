@@ -116,10 +116,20 @@ def data_enhancement(actor_name, dataset_name):
 
     with open("llm_data/data_all.json", "w") as f:
         json.dump(result, f, indent=2)
-    
+        
     result_llama = [llamafactory_template(ds) for ds in result]
-    with open("llm_data/data_train.json", "w") as f:
-        json.dump(result_llama, f, indent=2)
+    random.shuffle(result_llama)
+    
+    split_index = int(len(result_llama) * 0.1)  
+    test_data = result_llama[:split_index]    
+    train_data = result_llama[split_index:]  
+    
+    
+    with open("llm_data/data_train.json", "w") as train_file:
+        json.dump(train_data, train_file, indent=2, ensure_ascii=False)
+
+    with open("llm_data/data_test.json", "w") as test_file:
+        json.dump(test_data, test_file, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
