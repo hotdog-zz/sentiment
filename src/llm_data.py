@@ -39,11 +39,12 @@ def arg_parse():
     args = parser.parse_args()
     return args
 
-def clean_response(response):
+def clean_response(response_origin):
     classify = []
-    response = response.lower()
+    response = response_origin.lower()
     temp = response.find("explanation")
     response = response[0:temp]
+    response_origin = "\n" + response_origin[temp:]
     if "negative" in response:
         classify.append("negative")
     if "positive" in response:
@@ -52,7 +53,7 @@ def clean_response(response):
         classify.append("ambiguous")
     if len(classify) == 0:
         classify.append("")
-    return classify
+    return classify, response_origin
 
 def clean_emotion_response(response):
     response = response.lower()
@@ -105,7 +106,7 @@ def batch_inference(
 ):
     # device_id = device_id % 8
     os.environ["CUDA_VISIBLE_DEVICES"] = str(device_id)
-    model = LLM(model=actor_name, tensor_parallel_size=1, gpu_memory_utilization=0.9, max_model_len=2048, trust_remote_code=True)
+    model = LLM(model=actor_name, tensor_parallel_size=1, gpu_memory_utilization=0.87, max_model_len=2048, trust_remote_code=True)
     total_batches = (len(inference_dataset) + batch_size - 1) // batch_size
     results_true = []
     
@@ -126,7 +127,7 @@ def batch_inference(
             prompt=prompts,
         )
         prompts = [
-            generate_emotion_template(item['text'], model_name, clean_response(classify_response)[0])
+            generate_emotion_template(item['text'], model_name, str(clean_response(classify_response)[0][0]) + clean_response(classify_response)[1])
             for classify_response, item in zip(batch_classify_responses, batch_items)
         ]
         batch_emotion_responses = generate_responses(
@@ -165,7 +166,7 @@ def inference_pipeline(
     sample_num, 
     results_path,
 ):
-    gpu_id = [1, 4, 5, 7]
+    gpu_id = [5, 6, 7]
     total_gpu = len(gpu_id)
     sampling_params = SamplingParams(max_tokens=512, temperature=temperature)
     # random.shuffle(ds)
