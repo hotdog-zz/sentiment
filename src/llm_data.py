@@ -148,7 +148,7 @@ def batch_inference(
             new_data["emotion"] = data["emotion"]
             new_data["actor_model"] = actor_name
             new_data["classify_response"] = "After analyzing the whole sentence, I will classify it into " + response
-            new_data["origin_classify"] = clean_response(response)
+            new_data["origin_classify"] = clean_response(response)[0]
             response = batch_emotion_responses[idx]
             if response[0] == " ":
                 response = response[1:]
