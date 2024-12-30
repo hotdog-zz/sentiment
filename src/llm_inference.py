@@ -44,9 +44,9 @@ def clean_response(response_origin):
     opinion = []
 
     response = response_origin.lower()
-    temp = response.find("explanation")
-    response = response[0:temp]
-    response_origin = "\n" + response_origin[temp:]
+    temp = response.find("after analyzing")
+    response = response[temp:]
+    response_origin = response_origin[0:temp]
 
     if "negative" in response:
         classify.append("negative")
@@ -83,24 +83,24 @@ def clean_emotion_response(response):
     return emotion
 
 def generate_classify_template(text, model_name):
-    user_prompt = f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\nPlease also analyze whether the author of this sentence is a supporter or not and classify into: supporter/objector/neutral. 例如支持女性或辱骂男性的作者，是支持姜萍的;反对姜萍怀疑者的作者，是支持姜萍的。\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and the author is a [supporter/objector/neutral].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+    user_prompt = f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\nPlease also analyze whether the author of this sentence is a supporter or not and classify into: supporter/objector/neutral. 例如支持女性或辱骂男性的作者，是支持姜萍的;反对姜萍怀疑者的作者，是支持姜萍的。\n\nYour answer format should be:\nSentence analysis: [Your short analysis]\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and the author is a [supporter/objector/neutral].\n\nSentence:\n{text}"
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt}<|im_end|>\n<|im_start|>assistant\nSentence analysis:"
     elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
-        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSentence analysis:"
     elif model_name == "THUDM/glm-4-9b-chat":
-        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt}<|assistant|>\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt}<|assistant|>\nSentence analysis:"
     return prompt
 
 def generate_emotion_template(text, model_name, classify, opinion, explanation):
-    user_prompt1 =f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\nPlease also analyze whether the author of this sentence is a supporter or not and classify into: supporter/objector/neutral. 例如支持女性或辱骂男性的作者，是支持姜萍的;反对姜萍怀疑者的作者，是支持姜萍的。\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and the author is a [supporter/objector/neutral].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+    user_prompt1 =f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\nPlease also analyze whether the author of this sentence is a supporter or not and classify into: supporter/objector/neutral. 例如支持女性或辱骂男性的作者，是支持姜萍的;反对姜萍怀疑者的作者，是支持姜萍的。\n\nYour answer format should be:\nSentence analysis: [Your short analysis]\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and the author is a [supporter/objector/neutral].\n\nSentence:\n{text}"
     user_prompt2 = f"Now, please classify it into more detailed emotions. Below is all the emotion categories for your choice.\n[\"amusement\", \"excitement\", \"joy\", \"love\", \"desire\", \"optimism\", \"caring\", \"pride\", \"admiration\", \"gratitude\", \"relief\", \"approval\", \"fear\", \"nervousness\", \"remorse\", \"embarrassment\", \"disappointment\", \"sadness\", \"grief\", \"disgust\", \"anger\", \"annoyance\", \"disapproval\", \"realization\", \"surprise\", \"curiosity\", \"confusion\", \"neutral\"]\nYou can choose at most two emotions and answer it in the list form.\n\nYour answer format should be:\nI will classify it into [emotion list]."
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify} and the author is a {opinion}.{explanation}<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nSentence analysis: {explanation}\nAfter analyzing the whole sentence, I will classify it into {classify} and the author is a {opinion}.<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
     elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
-        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt1}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into {classify} and {opinion}.{explanation}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt2}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nI will classify it into"
+        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt1}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSentence analysis: {explanation}\nAfter analyzing the whole sentence, I will classify it into {classify} and the author is a {opinion}.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt2}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nI will classify it into"
     elif model_name == "THUDM/glm-4-9b-chat":
-        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt1}<|assistant|>\nAfter analyzing the whole sentence, I will classify it into {classify} and {opinion}.{explanation}<|user|>\n{user_prompt2}<|assistant|>\nI will classify it into"
+        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt1}<|assistant|>\nSentence analysis: {explanation}\nAfter analyzing the whole sentence, I will classify it into {classify} and the author is a {opinion}.<|user|>\n{user_prompt2}<|assistant|>\nI will classify it into"
     return prompt
 
 def generate_responses(model, sampling_params, prompt):
@@ -161,7 +161,7 @@ def batch_inference(
             # new_data["classify"] = data["classify"]
             # new_data["emotion"] = data["emotion"]
             new_data["actor_model"] = actor_name
-            new_data["classify_response"] = "After analyzing the whole sentence, I will classify it into " + response
+            new_data["classify_response"] = "Sentence analysis: " + response
             new_data["origin_classify"] = clean_response(response)[0]
             new_data["origin_opinion"] = clean_response(response)[2]
             response = batch_emotion_responses[idx]
