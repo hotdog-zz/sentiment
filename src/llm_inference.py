@@ -57,10 +57,10 @@ def clean_response(response_origin):
     if len(classify) == 0:
         classify.append("")
     
-    if "support" in response:
-        opinion.append("support")
-    if "opposition" in response:
-        opinion.append("opposition")
+    if "supporter" in response:
+        opinion.append("supporter")
+    if "objector" in response:
+        opinion.append("objector")
     if "neutral" in response:
         opinion.append("neutral")
     if len(opinion) == 0:
@@ -83,7 +83,7 @@ def clean_emotion_response(response):
     return emotion
 
 def generate_classify_template(text, model_name):
-    user_prompt = f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive. Please also analyze the sentence's view on 姜萍 and classify it into one of the three catrgories: support, opposition and neutral.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and [support/opposition/neutral].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+    user_prompt = f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\nPlease also analyze whether the author of this sentence is a supporter or not and classify into: supporter/objector/neutral. 例如支持女性或辱骂男性的作者，是支持姜萍的;反对姜萍怀疑者的作者，是支持姜萍的。\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and the author is a [supporter/objector/neutral].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
         prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into"
     elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
@@ -93,10 +93,10 @@ def generate_classify_template(text, model_name):
     return prompt
 
 def generate_emotion_template(text, model_name, classify, opinion, explanation):
-    user_prompt1 =f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive. Please also analyze the sentence's view on 姜萍 and classify it into one of the three catrgories: support, opposition and neutral.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and [support/opposition/neutral].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+    user_prompt1 =f"Here is an overview of a public opinion event: 姜萍是一名来自涟水中专的女生，她在阿里巴巴达摩举办的高等数学竞赛的预赛中取得了12名的成绩。然而，她在中专里的数学成绩仅为83分的低分，预赛答卷甚至出现了“主=6”,”∑=1/2”等数学名词错误，引起广泛讨论。有些网友支持姜萍，认为中专里也可能有天才，并攻击怀疑的人；有些网友怀疑姜萍，认为是她老师王闰秋帮助作弊，并嘲讽和质疑。\nIn this public opinion event, common internet buzzwords and memes include: jp，姜是姜萍名字的缩写，是中性词；jumping，姜圣则是对她的嘲讽，多为贬义；主=6，∑=1/2，姜萍不等式等内容是对她的质疑和嘲讽，多为贬义。 Please read the following sentence related to this event based on the above context and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\nPlease also analyze whether the author of this sentence is a supporter or not and classify into: supporter/objector/neutral. 例如支持女性或辱骂男性的作者，是支持姜萍的;反对姜萍怀疑者的作者，是支持姜萍的。\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive] and the author is a [supporter/objector/neutral].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
     user_prompt2 = f"Now, please classify it into more detailed emotions. Below is all the emotion categories for your choice.\n[\"amusement\", \"excitement\", \"joy\", \"love\", \"desire\", \"optimism\", \"caring\", \"pride\", \"admiration\", \"gratitude\", \"relief\", \"approval\", \"fear\", \"nervousness\", \"remorse\", \"embarrassment\", \"disappointment\", \"sadness\", \"grief\", \"disgust\", \"anger\", \"annoyance\", \"disapproval\", \"realization\", \"surprise\", \"curiosity\", \"confusion\", \"neutral\"]\nYou can choose at most two emotions and answer it in the list form.\n\nYour answer format should be:\nI will classify it into [emotion list]."
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify} and {opinion}.{explanation}<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify} and the author is a {opinion}.{explanation}<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
     elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
         prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt1}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into {classify} and {opinion}.{explanation}<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt2}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nI will classify it into"
     elif model_name == "THUDM/glm-4-9b-chat":
@@ -118,7 +118,7 @@ def batch_inference(
 ):
     # device_id = device_id % 8
     os.environ["CUDA_VISIBLE_DEVICES"] = str(device_id)
-    model = LLM(model=actor_name, tensor_parallel_size=1, gpu_memory_utilization=0.87, max_model_len=2048, trust_remote_code=True)
+    model = LLM(model=actor_name, tensor_parallel_size=1, gpu_memory_utilization=0.8, max_model_len=2048, trust_remote_code=True)
     total_batches = (len(inference_dataset) + batch_size - 1) // batch_size
     results_true = []
     
@@ -181,7 +181,7 @@ def inference_pipeline(
     sample_num, 
     results_path,
 ):
-    gpu_id = [6]
+    gpu_id = [0,1,4,5,7]
     total_gpu = len(gpu_id)
     sampling_params = SamplingParams(max_tokens=512, temperature=temperature)
     # random.shuffle(ds)
