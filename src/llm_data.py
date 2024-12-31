@@ -41,10 +41,13 @@ def arg_parse():
 
 def clean_response(response_origin):
     classify = []
+    opinion = []
+
     response = response_origin.lower()
-    temp = response.find("explanation")
-    response = response[0:temp]
-    response_origin = "\n" + response_origin[temp:]
+    temp = response.find("after analyzing")
+    response = response[temp:]
+    response_origin = response_origin[0:temp]
+
     if "negative" in response:
         classify.append("negative")
     if "positive" in response:
@@ -71,24 +74,24 @@ def clean_emotion_response(response):
     return emotion
 
 def generate_classify_template(text, model_name):
-    user_prompt = f"Please read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+    user_prompt = f"Please read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nSentence analysis: [Your short analysis]\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}"
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt}<|im_end|>\n<|im_start|>assistant\nSentence analysis:"
     elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
-        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSentence analysis:"
     elif model_name == "THUDM/glm-4-9b-chat":
-        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt}<|assistant|>\nAfter analyzing the whole sentence, I will classify it into"
+        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt}<|assistant|>\nSentence analysis:"
     return prompt
 
-def generate_emotion_template(text, model_name, classify):
-    user_prompt1 = f"Please read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\nExplanation: [Your short explanation]\n\nSentence:\n{text}"
+def generate_emotion_template(text, model_name, classify, explanation):
+    user_prompt1 = f"Please read the following sentence and classify it into one of the three categories based on the emotion expressed: negative, ambiguous, or positive.\n\nYour answer format should be:\nSentence analysis: [Your short analysis]\nAfter analyzing the whole sentence, I will classify it into [negative/ambiguous/positive].\n\nSentence:\n{text}"
     user_prompt2 = f"Now, please classify it into more detailed emotions. Below is all the emotion categories for your choice.\n[\"amusement\", \"excitement\", \"joy\", \"love\", \"desire\", \"optimism\", \"caring\", \"pride\", \"admiration\", \"gratitude\", \"relief\", \"approval\", \"fear\", \"nervousness\", \"remorse\", \"embarrassment\", \"disappointment\", \"sadness\", \"grief\", \"disgust\", \"anger\", \"annoyance\", \"disapproval\", \"realization\", \"surprise\", \"curiosity\", \"confusion\", \"neutral\"]\nYou can choose at most two emotions and answer it in the list form.\n\nYour answer format should be:\nI will classify it into [emotion list]."
     if model_name == "Qwen/Qwen2.5-7B-Instruct":
-        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nAfter analyzing the whole sentence, I will classify it into {classify}.<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
+        prompt = f"<|im_start|>system\nYou are Qwen, created by Alibaba Cloud. You are a helpful assistant.<|im_end|>\n<|im_start|>user\n{user_prompt1}<|im_end|>\n<|im_start|>assistant\nSentence analysis: {explanation}After analyzing the whole sentence, I will classify it into {classify}.<|im_end|>\n<|im_start|>user\n{user_prompt2}<|im_end|>\n<|im_start|>assistant\nI will classify it into"
     elif model_name == "meta-llama/Meta-Llama-3-8B-Instruct" or model_name == "meta-llama/Llama-3.1-8B-Instruct":
-        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt1}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nAfter analyzing the whole sentence, I will classify it into {classify}.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt2}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nI will classify it into"
+        prompt = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\nYou are a helpful assistant.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt1}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nSentence analysis: {explanation}After analyzing the whole sentence, I will classify it into {classify}.<|eot_id|><|start_header_id|>user<|end_header_id|>\n\n{user_prompt2}<|eot_id|><|start_header_id|>assistant<|end_header_id|>\n\nI will classify it into"
     elif model_name == "THUDM/glm-4-9b-chat":
-        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt1}<|assistant|>\nAfter analyzing the whole sentence, I will classify it into {classify}.<|user|>\n{user_prompt2}<|assistant|>\nI will classify it into"
+        prompt = f"[gMASK]<sop><|system|>\nYou are a helpful assistant.<|user|>\n{user_prompt1}<|assistant|>\nSentence analysis: {explanation}After analyzing the whole sentence, I will classify it into {classify}.<|user|>\n{user_prompt2}<|assistant|>\nI will classify it into"
     return prompt
 
 def generate_responses(model, sampling_params, prompt):
@@ -127,7 +130,7 @@ def batch_inference(
             prompt=prompts,
         )
         prompts = [
-            generate_emotion_template(item['text'], model_name, str(clean_response(classify_response)[0][0]) + clean_response(classify_response)[1])
+            generate_emotion_template(item['text'], model_name, str(clean_response(classify_response)[0][0]), clean_response(classify_response)[1])
             for classify_response, item in zip(batch_classify_responses, batch_items)
         ]
         batch_emotion_responses = generate_responses(
@@ -138,7 +141,7 @@ def batch_inference(
 
         for idx, data in enumerate(batch_items):
             response = batch_classify_responses[idx]
-            if response[0] == " ":
+            if len(response) > 0 and response[0] == " ":
                 response = response[1:]
             new_data = {}
             new_data["idx"] = data["idx"]
@@ -147,10 +150,10 @@ def batch_inference(
             new_data["classify"] = data["classify"]
             new_data["emotion"] = data["emotion"]
             new_data["actor_model"] = actor_name
-            new_data["classify_response"] = "After analyzing the whole sentence, I will classify it into " + response
+            new_data["classify_response"] = "Sentence analysis: " + response
             new_data["origin_classify"] = clean_response(response)[0]
             response = batch_emotion_responses[idx]
-            if response[0] == " ":
+            if len(response) > 0 and response[0] == " ":
                 response = response[1:]
             new_data["emotion_response"] = "I will classify it into " + response
             new_data["origin_emotion"] = clean_emotion_response(response)
@@ -166,7 +169,7 @@ def inference_pipeline(
     sample_num, 
     results_path,
 ):
-    gpu_id = [0,1,4,5,6,7]
+    gpu_id = [6]
     total_gpu = len(gpu_id)
     sampling_params = SamplingParams(max_tokens=512, temperature=temperature)
     # random.shuffle(ds)
