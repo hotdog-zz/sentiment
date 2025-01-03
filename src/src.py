@@ -247,4 +247,97 @@ def trend():
     for period in same_trend_periods:
         print(period)
 
+def do_tokenize(data):
+    # 分词
+    new_data = []
+    for item in tqdm(data):
+        text = item['text']
+        tokens = jieba.lcut(text)
+        item['tokens'] = tokens
+        new_data.append(item)
+    return new_data
+
+def semantic_space(data):
+    # 语义空间分析和聚类
+    cluster_indices = [
+        i for i, item in enumerate(data) 
+        if 'negative' in item.get('origin_classify', '')
+    ]
+    vectorizer = TfidfVectorizer()
+
+    filler_words = {"呢", "啊", "嘛", "哈", "呗", "呵",'的','了','是'}
+    tokenized_comments = [
+        " ".join([token for token in item['tokens'] if token not in filler_words])
+        for item in data
+    ]
+
+    # 计算 TF-IDF
+    tfidf_matrix = vectorizer.fit_transform(tokenized_comments)
+
+    # SVD 降维到 50 维
+    svd = TruncatedSVD(n_components=50)  
+    X_reduced = svd.fit_transform(tfidf_matrix)
+
+    # KMeans 聚类
+    kmeans = KMeans(n_clusters=2, random_state=42)
+    kmeans.fit(X_reduced)
+    labels = kmeans.labels_
+    
+    # PCA 再降到 2 维，进行可视化
+    pca = PCA(n_components=2, random_state=4)
+    X_vis = pca.fit_transform(X_reduced)
+    plt.scatter(X_vis[:,0], X_vis[:,1], c=labels)
+    plt.colorbar()
+    plt.show()
+
+    print("=== 距离聚类中心最近的文本 ===")
+
+    n_clusters = 2
+    cluster_centers = kmeans.cluster_centers_ 
+    for cluster_id in range(n_clusters):
+        this_cluster_indices = np.where(labels == cluster_id)[0]  
+        this_cluster_points = X_reduced[this_cluster_indices]
+        
+        center = cluster_centers[cluster_id]
+        distances = np.linalg.norm(this_cluster_points - center, axis=1)
+        
+        sorted_indices = np.argsort(distances)
+        top_k = 5  
+        top_k_indices = sorted_indices[:top_k]
+        
+        print(f"\n【Cluster {cluster_id}】")
+        for rank, idx_in_cluster in enumerate(top_k_indices, start=1):
+            real_index_in_data = cluster_indices[this_cluster_indices[idx_in_cluster]]
+            text_closest = data[real_index_in_data]['text']
+            print(f"  - 第 {rank} 近样本索引: {real_index_in_data}")
+            print(f"    文本内容: {text_closest}")
+
+
+def word_cloud(data):
+    # 词云图
+    stop_words = [
+        "的", "了", "在", "是", "我", "有", "和", "你", "他", "她", "它", 
+        "我们", "他们", "这", "那", "对", "于", "向", "为", "上", "下", 
+        "很", "就", "都", "吧", "说", "也", "还", "但", "如果", "或者", 
+        "因为", "所以", "、", "。", "，", "？", "！", "；", "：", "（", "）", 
+        "【", "】", "《", "》", "“", "”", "‘", "’", "、", "．", "—", "·", "～"
+    ]
+    tokens = []
+    for item in data:
+        tokens += [t for t in item['tokens'] if t not in stop_words]
+
+    tokenized_text = " ".join(tokens)
+
+    wordcloud = WordCloud(
+        width=800, 
+        height=400,
+        background_color="white",  
+        font_path="/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc"  
+    ).generate(tokenized_text)
+
+    plt.figure(figsize=(10, 6))
+    plt.imshow(wordcloud, interpolation="bilinear")
+    plt.axis("off")  
+    plt.show()
+
 
