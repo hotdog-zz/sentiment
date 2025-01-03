@@ -17,6 +17,7 @@ sentiment/
 │   ├── emotion.csv         # 情感数据日平均值
 │   ├── opinion.csv         # 观点数据日平均值
 │   |—— sentiment-198k-test.json # 测试数据集
+|   └── README.md           # 数据介绍
 |
 ├── src/                    # 各类代码
 │   ├── spider/             # 爬虫代码
@@ -25,6 +26,7 @@ sentiment/
 │   ├── llm_inference.py    # 爬虫数据集分类流程
 │   ├── llm_train.py        # 模型训练数据构建
 │   └── src.py              # 分析代码
+|   └── README.md           # 代码介绍
 |
 ├── README.md               # Documentation (this file)
 └── LICENSE                 # License file
