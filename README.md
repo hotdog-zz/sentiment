@@ -25,7 +25,7 @@ sentiment/
 │   ├── llm_data.py         # 原始数据集增强流程
 │   ├── llm_inference.py    # 爬虫数据集分类流程
 │   ├── llm_train.py        # 模型训练数据构建
-│   └── src.py              # 分析代码
+│   ├── src.py              # 分析代码
 |   └── README.md           # 代码介绍
 |
 ├── README.md               # Documentation (this file)
