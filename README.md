@@ -16,6 +16,7 @@ sentiment/
 ├── llm_data/               # 模型推理后数据及分析数据
 │   ├── emotion.csv         # 情感数据日平均值
 │   ├── opinion.csv         # 观点数据日平均值
+│   |—— sentiment-198k-test.json # 测试数据集
 |
 ├── src/                    # 各类代码
 │   ├── spider/             # 爬虫代码
